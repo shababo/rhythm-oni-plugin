@@ -115,6 +115,7 @@ namespace ONIRhythmNode
 		/** Gets the method for determining channel names*/
 		ChannelNamingScheme getNamingScheme();
 
+
 		/** Allow the thread to respond to messages sent by other plugins */
 		void handleBroadcastMessage(String msg) override;
 
@@ -270,6 +271,9 @@ namespace ONIRhythmNode
 
 		/** True if change in settings is needed during acquisition*/
 		bool updateSettingsDuringAcquisition;
+
+		/** handle both broadcast and config messages */
+		String handleMessage(String msg);
 
 		/** Data buffers*/
 		float thisSample[MAX_NUM_CHANNELS];

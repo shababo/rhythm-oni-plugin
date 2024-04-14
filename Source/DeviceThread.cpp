@@ -222,8 +222,14 @@ std::unique_ptr<GenericEditor> DeviceThread::createEditor(SourceNode* sn)
     return editor;
 }
 
-void DeviceThread::handleBroadcastMessage(String msg)
+String DeviceThread::handleMessage(String msg)
 {
+
+    // Available commands
+    // ACQBOARD TRIGGER <ttl_line> <event_duration_msec>
+    // ACQBOARD SET_IMPEDANCE_CHANNELS <channel> <channel> <channel> ...
+    // ACQBOARD RUN_IMPEDANCE_TEST
+
     StringArray parts = StringArray::fromTokens(msg, " ", "");
 
     //std::cout << "Received " << msg << std::endl;
@@ -241,12 +247,12 @@ void DeviceThread::handleBroadcastMessage(String msg)
                     int ttlLine = parts[2].getIntValue() - 1;
 
                     if (ttlLine < 0 || ttlLine > 7)
-                        return;
+                        return "MESSAGE PROCESSED";;
 
                     int eventDurationMs = parts[3].getIntValue();
 
                     if (eventDurationMs < 10 || eventDurationMs > 5000)
-                        return;
+                        return "MESSAGE PROCESSED";;
 
                     DigitalOutputCommand command;
                     command.ttlLine = ttlLine;
@@ -268,52 +274,38 @@ void DeviceThread::handleBroadcastMessage(String msg)
 
                 impedanceThread->setTestChannels(channelsToTest);
             }
-        }
-    }
-
-}
-
-String DeviceThread::handleConfigMessage(String msg)
-{
-    // Available commands:
-    // ACQBOARD SET_IMPEDANCE_CHANNELS <channel> <channel> <channel> ...
-    // ACQBOARD RUN_IMPEDANCE_TEST
-
-
-    LOGD("Acquisition Board received ", msg);
-
-    if (CoreServices::getAcquisitionStatus())
-    {
-        return "Cannot accept configuration messages to the Acquisition Board during acquisition.";
-    }
-
-    StringArray parts = StringArray::fromTokens(msg, " ", "");
-
-    if (parts[0].equalsIgnoreCase("ACQBOARD"))
-    {
-
-        LOGD("Found ACQBOARD command.");
-
-        if (parts.size() > 0)
-        {
-
-            String command = parts[1];
-
-            LOGD("Command: ", command);
-
-            if (command.equalsIgnoreCase("SET_IMPEDANCE_CHANNELS"))
+            else if (command.equalsIgnoreCase("RUN_IMPEDANCE_TEST"))
             {
-                std::vector<int> channelsToTest;
-
-                for (int i = 2; i < parts.size(); i++)
-                    channelsToTest.push_back(parts[i].getIntValue());
-
-                impedanceThread->setTestChannels(channelsToTest);
+                if (CoreServices::getAcquisitionStatus())
+                {
+                    return "Cannot run impedance test while acquisition is running.";
+                }
+                MessageManager::callAsync(
+                    [=]() { 
+                        runImpedanceTest();
+                    }
+                );
             }
         }
     }
 
-    return "SUCCESS";
+    return "MESSAGE PROCESSED";
+
+}
+
+void DeviceThread::handleBroadcastMessage(String msg)
+{
+    LOGD("Acquisition Board broadcast message received ", msg);
+
+    handleMessage(msg);
+}
+
+String DeviceThread::handleConfigMessage(String msg)
+{
+
+    LOGD("Acquisition Board config message received ", msg);
+
+    return handleMessage(msg);
 
 }
 

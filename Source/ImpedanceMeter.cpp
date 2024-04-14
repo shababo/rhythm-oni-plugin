@@ -59,6 +59,11 @@ ImpedanceMeter::ImpedanceMeter(DeviceThread* board_) :
     const int maxNumBlocks = 120;
     int numStreams = 8;
 
+    for (int i = 0; i < 32; i++) // channel count is hard-coded elsewhere in this class so...
+    {
+        testChannel.push_back(true);
+    }
+
     allocateDoubleArray3D(amplifierPreFilter, numStreams, 32, MAX_SAMPLES_PER_DATA_BLOCK * maxNumBlocks);
 }
 
@@ -446,6 +451,10 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
         for (channel = 0; channel < 32; ++channel)
         {
 
+            if (!testChannel[channel]) {
+                continue;
+            }
+
             CHECK_EXIT;
 
             //LOGD("ImpedanceMeter: channel = ", channel);
@@ -626,5 +635,21 @@ void ImpedanceMeter::restoreBoardSettings()
     {
         board->evalBoard->enableExternalFastSettle(true);
     }
+}
+
+void ImpedanceMeter::setTestChannels(std::vector<int> channelsToTest) {
+
+    testChannel.clear();
+
+    for (int i = 0; i < 32; i++) {
+        testChannel.push_back(false);
+    }
+
+    for (int i = 0; i < channelsToTest.size(); i++) {
+        testChannel[channelsToTest[i]] = true;
+    }
+
+
+
 }
 

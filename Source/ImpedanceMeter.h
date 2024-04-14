@@ -62,6 +62,9 @@ namespace ONIRhythmNode
 		/** Save values to a file (XML format)*/
 		void saveValues(File& file);
 
+		/** Select which channels to test */
+		void setTestChannels(std::vector<int> channelsToTest);
+
 	private:
 
 		/** Calculates impedance values for all channels*/
@@ -132,6 +135,7 @@ namespace ONIRhythmNode
 			int numDataStreams);
 
 		std::vector<std::vector<std::vector<double>>> amplifierPreFilter;
+		std::vector<bool> testChannel;
 
 		DeviceThread* board;
 

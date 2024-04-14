@@ -259,9 +259,61 @@ void DeviceThread::handleBroadcastMessage(String msg)
                     digitalOutputTimers.add(timer);
 
                 }
+            } else if (command.equalsIgnoreCase("SET_IMPEDANCE_CHANNELS"))
+            {
+                std::vector<int> channelsToTest;
+
+                for (int i = 2; i < parts.size(); i++)
+                    channelsToTest.push_back(parts[i].getIntValue());
+
+                impedanceThread->setTestChannels(channelsToTest);
             }
         }
     }
+
+}
+
+String DeviceThread::handleConfigMessage(String msg)
+{
+    // Available commands:
+    // ACQBOARD SET_IMPEDANCE_CHANNELS <channel> <channel> <channel> ...
+    // ACQBOARD RUN_IMPEDANCE_TEST
+
+
+    LOGD("Acquisition Board received ", msg);
+
+    if (CoreServices::getAcquisitionStatus())
+    {
+        return "Cannot accept configuration messages to the Acquisition Board during acquisition.";
+    }
+
+    StringArray parts = StringArray::fromTokens(msg, " ", "");
+
+    if (parts[0].equalsIgnoreCase("ACQBOARD"))
+    {
+
+        LOGD("Found ACQBOARD command.");
+
+        if (parts.size() > 0)
+        {
+
+            String command = parts[1];
+
+            LOGD("Command: ", command);
+
+            if (command.equalsIgnoreCase("SET_IMPEDANCE_CHANNELS"))
+            {
+                std::vector<int> channelsToTest;
+
+                for (int i = 2; i < parts.size(); i++)
+                    channelsToTest.push_back(parts[i].getIntValue());
+
+                impedanceThread->setTestChannels(channelsToTest);
+            }
+        }
+    }
+
+    return "SUCCESS";
 
 }
 

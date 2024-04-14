@@ -118,6 +118,9 @@ namespace ONIRhythmNode
 		/** Allow the thread to respond to messages sent by other plugins */
 		void handleBroadcastMessage(String msg) override;
 
+		/** Allow the thread to respond to configuration messages */
+		String handleConfigMessage(String msg) override;
+
 		/** Informs the DataThread about whether to expect saved settings to be loaded*/
 		void initialize(bool signalChainIsLoading) override;
 

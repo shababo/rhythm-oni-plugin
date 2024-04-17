@@ -282,9 +282,11 @@ String DeviceThread::handleMessage(String msg)
                 }
                 MessageManager::callAsync(
                     [=]() { 
-                        runImpedanceTest();
+                        DeviceEditor* ed = (DeviceEditor*)sn->getEditor();
+                        ed->measureImpedance();
                     }
                 );
+                
             }
         }
     }
